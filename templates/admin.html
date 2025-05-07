@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel - Title Verification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f4f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding-top: 70px;
+    }
+
+    .navbar {
+      background-color: #002b5c;
+    }
+    
+
+
+
+    .navbar-brand,
+    .nav-link {
+      color: #ffffff !important;
+    }
+
+    .nav-link:hover {
+      text-decoration: underline;
+    }
+
+    .card {
+      background-color: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-weight: 600;
+      color: #002b5c;
+    }
+
+    .btn {
+      width: 120px;
+    }
+
+    .btn-success {
+      background-color: #198754;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+    }
+
+    .info-line {
+      margin-bottom: 0.4rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #002b5c;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .navbar .btn {
+  white-space: nowrap;
+}
+
+    
+
+    @media (max-width: 768px) {
+      .card {
+        padding: 20px;
+      }
+
+      .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      National Press Title Verification Portal
+    </a>
+    <div class="ms-auto">
+      <a class="btn btn-outline-light me-2  " style="width: 150px; padding: 6px 10px; " href="/admin">Admin Dashboard</a>
+      <a class="btn btn-outline-light me-2 "  style="width: 140px; padding: 6px 10px;" href="/login">User Dashboard</a>
+      <a class="btn btn-outline-light " style="width: 85px; padding: 6px 10px; " href="/">Log Out</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Content -->
+<div class="container mt-4 mb-5">
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+      <div class="card">
+        <h3 class="section-title">🛠️ Pending Title Verifications</h3>
+
+        {% if pending %}
+          {% for item in pending %}
+            <div class="card mb-3">
+              <div class="card-body">
+                <h5 class="card-title">{{ item.title }}</h5>
+                <p class="info-line"><strong>Verification Score:</strong> {{ item.score }}%</p>
+                <p class="info-line"><strong>Owner:</strong> {{ item.owner_name }}</p>
+                <p class="info-line"><strong>State:</strong> {{ item.state }}</p>
+                <p class="info-line"><strong>District:</strong> {{ item.district }}</p>
+
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                  <form method="POST" action="/accept-title">
+                    <input type="hidden" name="title" value="{{ item.title }}">
+                    <input type="hidden" name="score" value="{{ item.score }}">
+                    <input type="hidden" name="owner" value="{{ item.owner_name }}">
+                    <input type="hidden" name="state" value="{{ item.state }}">
+                    <input type="hidden" name="district" value="{{ item.district }}">
+                    <button class="btn btn-success" type="submit">Accept</button>
+                  </form>
+
+                  <form method="POST" action="/reject-title">
+                    <input type="hidden" name="title" value="{{ item.title }}">
+                    <input type="hidden" name="score" value="{{ item.score }}">
+                    <input type="hidden" name="owner" value="{{ item.owner_name }}">
+                    <input type="hidden" name="state" value="{{ item.state }}">
+                    <input type="hidden" name="district" value="{{ item.district }}">
+                    <button class="btn btn-danger" type="submit">Reject</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-center text-muted">No titles to verify.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
