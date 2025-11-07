@@ -12,7 +12,6 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 import ast
 
 
-GOOGLE_API = 'AIzaSyBlNjYLgquPwi3WPDphK6Fc8sl3t6ajzwM'
 llm = ChatGoogleGenerativeAI(model = 'gemini-2.0-flash' , temperature = 0.6 , api_key = GOOGLE_API)
 
 nltk.download('stopwords')
