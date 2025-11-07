@@ -8,6 +8,12 @@ from nltk.corpus import stopwords, wordnet
 import nltk
 import re
 import random
+from langchain_google_genai import ChatGoogleGenerativeAI
+import ast
+
+
+GOOGLE_API = 'AIzaSyBlNjYLgquPwi3WPDphK6Fc8sl3t6ajzwM'
+llm = ChatGoogleGenerativeAI(model = 'gemini-2.0-flash' , temperature = 0.6 , api_key = GOOGLE_API)
 
 nltk.download('stopwords')
 nltk.download('wordnet')
@@ -72,40 +78,35 @@ def suggest_titles(base_title, max_suggestions=5):
             base_words.remove(i)
             
     suggestions = set()
-    used_mods = set()
-    synonyms = set()
-    for syn in wordnet.synsets("news"):
-        for lemma in syn.lemmas():
-            if '_' not in lemma.name():
-                synonyms.add(lemma.name().title())
+   
 
-    modifiers = list(set([
-        "Darshan", "Darpan", "Sutra", "Sanchaar", "Vaani", "Samvad", "Bhaskar", "Jyoti", "Kiran", "Tejas",
-        "Manthan", "Nirman", "Drishti", "Awaaz", "Bharat", "Bhoomi", "Janmat", "Sankalp", "Desh", "Vichar",
-        "Jagran", "Prabha", "Samachar", "Sandesh", "Sansaar", "Yatra", "Udaan", "Agni", "Shakti", "Surya",
-        "Savera", "Tarang", "Disha", "Ank", "Lok", "Rashtra", "Netra", "Sangam", "Megh", "Vartamaan",
-        "Akhbaar", "Jagruk", "Saksham", "Ujjwal", "Patrika", "Khabar", "Varta", "Sangrah", "Roshni",
-        "Chronicle", "Herald", "Bulletin", "Mirror", "Gazette", "Dispatch", "Journal", "Tribune", "Report",
-        "Pulse", "Echo", "Wire", "Stream", "Beacon", "Insight", "Outlook", "Spotlight", "Watch",
-        "Flash", "Drift", "Verse", "Wave", "Source", "Scene", "Clarity", "Focus", "Grid",
-        "Index", "Sphere", "Orbit", "Link", "Thread", "Buzz", "Edge", "Voice", "Vibe", "View",
-        "Eye", "Loop", "Drop", "Zone", "Vortex", "Panorama", "Cast", "Now"
-    ] + list(synonyms)))
 
     while len(suggestions) < max_suggestions:
-        mod = random.choice(modifiers)
-        if mod.lower() in base_words or mod in used_mods:
-            continue
-        structure = random.choice(["mod_first", "mod_last"])
-        word_sample = random.sample(base_words, min(len(base_words), 2))
-        combined = f"{mod} {' '.join(word_sample)}" if structure == "mod_first" else f"{' '.join(word_sample)} {mod}"
-        clean_combined = preprocess_title(combined)
-        is_similar, _ = check_similarity(clean_combined)
-        is_valid, reason = check_rules(clean_combined)
-        if is_valid and not is_similar and clean_combined not in titles_db:
-            suggestions.add(combined.title())
-            used_mods.add(mod)
+
+        prompt = f'''suggest 7 alternative and similar names for {base_title} newspaper.
+
+                    names should not contain {disallowed_words} words, {disallowed_prefixes} prefixes and {disallowed_suffixes} suffixes.
+                    write name in a list like ['name1', 'name2', 'name3'] '''
+                
+        ans = llm.invoke(prompt)
+        ans1 = ans.content.strip()
+
+
+        match = re.search(r"\[.*\]", ans1, re.DOTALL)
+        if match:
+            titles_list = ast.literal_eval(match.group())
+        else:
+            titles_list = []
+
+        for i in titles_list:
+            clean_combined = preprocess_title(i)
+            is_similar, _ = check_similarity(clean_combined)
+            is_valid, reason = check_rules(clean_combined)
+            if is_valid and not is_similar and clean_combined not in titles_db:
+                suggestions.add(i)
     return list(suggestions)
+
+
 
 # Routes
 @app.route('/')
